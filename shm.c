@@ -40,10 +40,19 @@ return 0; //added to remove compiler warning -- you should decide what to return
 
 
 int shm_close(int id) {
-//you write this too!
+  //you write this too!
+  int i = 0;
+  // we need to lock the memory before we can start
+  initlock(&(shm_table.lock), "SHM lock");
+  acquire(&(shm_table.lock));
 
-
-
+  // look for shared memory segment
+  for (i = 0; i < 64; i++) {
+    // if the segment matches
+    if (shm_table.shm_pages[i].id == id) {
+      shm_table.shm_pages[i].refcnt--;
+    }
+  }
 
 return 0; //added to remove compiler warning -- you should decide what to return
 }
