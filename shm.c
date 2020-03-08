@@ -44,7 +44,7 @@ int shm_open(int id, char **pointer) {
     }
   }
 
-  if (case1) {
+  if (case1 == 1) {
     cprintf("Case 1\n");
     mappages(curproc->pgdir, (void*)PGROUNDUP(curproc->sz), PGSIZE, 
             V2P(shm_table.shm_pages[i].frame), PTE_W|PTE_U);
@@ -92,7 +92,8 @@ int shm_close(int id) {
   for (i = 0; i < 64; i++) {
     // if the segment matches
     if (shm_table.shm_pages[i].id == id) {
-        shm_table.shm_pages[i].refcnt--;
+        if (shm_table.shm_pages[i].refcnt >= 1)
+          shm_table.shm_pages[i].refcnt--;
     }
     else {
         shm_table.shm_pages[i].id = 0;
