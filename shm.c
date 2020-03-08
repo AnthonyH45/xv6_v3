@@ -59,7 +59,9 @@ int shm_open(int id, char **pointer) {
   }
   else {
     for (i = 0; i < 64; i++) {
-        if (shm_table.shm_pages[i].id == 0) {
+        if (shm_table.shm_pages[i].id == 0 && 
+                shm_table.shm_pages[i].frame == 0 && 
+                shm_table.shm_pages[i].refcnt == 0) {
         cprintf("Case 2\n");
         shm_table.shm_pages[i].id = id;
         // TODO: Map a page and store its address in frame (use kalloc, then mappages)
@@ -95,13 +97,13 @@ int shm_close(int id) {
     if (shm_table.shm_pages[i].id == id) {
         if (shm_table.shm_pages[i].refcnt >= 1)
           shm_table.shm_pages[i].refcnt--;
-        else {
+        if (shm_table.shm_pages[i].refcnt == 0) {
           shm_table.shm_pages[i].id = 0;
           shm_table.shm_pages[i].frame = 0;
           shm_table.shm_pages[i].refcnt = 0;
+        }
     }
 
-    }
    }
   release(&(shm_table.lock));
 
