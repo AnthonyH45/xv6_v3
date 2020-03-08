@@ -31,7 +31,7 @@ void shminit() {
 int shm_open(int id, char **pointer) {
 
 //you write this
-  int exists = 0;
+  int case1  = 0;
   int i;
 
   struct proc * curproc = myproc();
@@ -39,37 +39,43 @@ int shm_open(int id, char **pointer) {
   acquire(&(shm_table.lock));
   for (i = 0; i < 64; i++) {
     if (shm_table.shm_pages[i].id == id) {
-        exists = 1;
+        case1 = 1;
         break;
     }
   }
 
-  if (exists) {
+  if (case1) {
+    cprintf("Case 1\n");
     mappages(curproc->pgdir, (void*)PGROUNDUP(curproc->sz), PGSIZE, 
             V2P(shm_table.shm_pages[i].frame), PTE_W|PTE_U);
     shm_table.shm_pages[i].refcnt++;
+    cprintf("Page mapped\n");
     *pointer = (char*)PGROUNDUP(curproc->sz);
     curproc->sz += PGSIZE;
-    return 1;
+    case1 = 0;
+    cprintf("End Case 1\n");
   }
   else {
+   
     for (i = 0; i < 64; i++) {
-        if (shm_table.shm_pages[i].id == 0 && 
-                shm_table.shm_pages[i].frame == 0 && 
-                shm_table.shm_pages[i].refcnt == 0) {
+        if (shm_table.shm_pages[i].id == 0) {
+        cprintf("Case 2\n");
         shm_table.shm_pages[i].id = id;
         // TODO: Map a page and store its address in frame (use kalloc, then mappages)
         shm_table.shm_pages[i].frame = kalloc();
         shm_table.shm_pages[i].refcnt = 1;
         mappages(curproc->pgdir, (void*)PGROUNDUP(curproc->sz), PGSIZE,
                 V2P(shm_table.shm_pages[i].frame), PTE_W|PTE_U);
+        cprintf("Page mapped\n");
         *pointer = (char*)PGROUNDUP(curproc->sz);
-        return 1;
+        curproc->sz += PGSIZE;
+        cprintf("End Case 2\n");
+        break;
         }
     }
   }
-
   release(&(shm_table.lock));
+  cprintf("End of shm_open\n");
 
 return 0; //added to remove compiler warning -- you should decide what to return
 }
@@ -86,9 +92,16 @@ int shm_close(int id) {
   for (i = 0; i < 64; i++) {
     // if the segment matches
     if (shm_table.shm_pages[i].id == id) {
-      shm_table.shm_pages[i].refcnt--;
+        shm_table.shm_pages[i].refcnt--;
+    }
+    else {
+        shm_table.shm_pages[i].id = 0;
+        shm_table.shm_pages[i].frame = 0;
+        shm_table.shm_pages[i].refcnt = 0;
     }
   }
+  release(&(shm_table.lock));
+
 
 return 0; //added to remove compiler warning -- you should decide what to return
 }
