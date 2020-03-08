@@ -43,7 +43,6 @@ printf(1,"%s returned successfully from shm_open with counter %x\n", pid? "Child
 
 //shm_close: first process will just detach, next one will free up the shm_table entry (but for now not the page)
    shm_close(1);
-   printf(1, "Closed\n");
    exit();
    return 0;
 }
