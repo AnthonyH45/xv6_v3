@@ -43,20 +43,25 @@ int shm_open(int id, char **pointer) {
         break;
     }
   }
+  release(&(shm_table.lock));
 
   if (case1 == 1) {
     cprintf("Case 1\n");
+    
+    acquire(&(shm_table.lock));
     mappages(curproc->pgdir, (void*)PGROUNDUP(curproc->sz), PGSIZE, 
             V2P(shm_table.shm_pages[i].frame), PTE_W|PTE_U);
     shm_table.shm_pages[i].refcnt++;
+    release(&(shm_table.lock));
+
     cprintf("Page mapped\n");
     *pointer = (char*)PGROUNDUP(curproc->sz);
     curproc->sz += PGSIZE;
-    case1 = 0;
+
     cprintf("End Case 1\n");
   }
   else {
-   
+    acquire(&(shm_table.lock));
     for (i = 0; i < 64; i++) {
         if (shm_table.shm_pages[i].id == 0) {
         cprintf("Case 2\n");
@@ -73,8 +78,8 @@ int shm_open(int id, char **pointer) {
         break;
         }
     }
+    release(&(shm_table.lock));
   }
-  release(&(shm_table.lock));
   cprintf("End of shm_open\n");
 
 return 0; //added to remove compiler warning -- you should decide what to return
