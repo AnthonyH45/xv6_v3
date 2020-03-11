@@ -81,7 +81,6 @@ int shm_open(int id, char **pointer) {
   }
   release(&(shm_table.lock));
   //cprintf("End of shm_open\n");
-
 return 0; //added to remove compiler warning -- you should decide what to return
 }
 
@@ -108,7 +107,5 @@ int shm_close(int id) {
 
    }
   release(&(shm_table.lock));
-
-
 return 0; //added to remove compiler warning -- you should decide what to return
 }
